@@ -5,21 +5,29 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building...'
-                sh 'pip install -r requirements.txt'
+                script {
+                    dockerImage = docker.build('xyz-web-app')
+                }
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Testing...'
-                // Aqui você pode adicionar os testes para sua aplicação
+                sh 'pip install -r requirements.txt'
+                sh 'python -m unittest discover tests'
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Deploying...'
-                // Aqui você pode adicionar os passos para implantar sua aplicação, como por exemplo usando Docker, Kubernetes ou alguma outra plataforma de sua preferência
+                script {
+                    docker.withRegistry('<DOCKER_REGISTRY_URL>', '<DOCKER_REGISTRY_CREDENTIALS_ID>') {
+                        dockerImage.push('latest')
+                    }
+                    // Aqui você pode adicionar os passos para implantar sua aplicação, como por exemplo usando Docker Compose, Kubernetes ou alguma outra plataforma de sua preferência
+                }
             }
         }
     }
